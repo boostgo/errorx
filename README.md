@@ -55,6 +55,16 @@ func oops() error {
 
 ```
 
+# Error
+
+### Output
+
+If you want to beautify your error response and hide some inner levels of message (stack) you can use "onlyFirst" optional variable
+```go
+fmt.Println(errorx.Get(err).Message(1)) // "One more message"
+fmt.Println(errorx.Get(err).Type(1))    // "one more type"
+```
+
 # Try
 
 Try-Catch like in Java, C#, etc...

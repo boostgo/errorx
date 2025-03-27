@@ -74,10 +74,15 @@ func (err *Error) Copy(innerErrors ...error) error {
 //
 // For example, there are messages: ["QueryxContext", "GetUser", "GetByID"]
 // it will be "QueryxContext - GetByID - GetUser"
-func (err *Error) Message() string {
+func (err *Error) Message(onlyFirst ...int) string {
 	reversed := make([]string, len(err.message))
 	copy(reversed, err.message)
 	slices.Reverse(reversed)
+
+	if len(onlyFirst) > 0 && onlyFirst[0] > 0 {
+		reversed = limitSlice(reversed, onlyFirst[0])
+	}
+
 	return strings.Join(reversed, " - ")
 }
 
@@ -91,10 +96,15 @@ func (err *Error) SetType(errorType string) *Error {
 //
 // For example, there are types: ["SQL", "User Repository", "User Usecase"]
 // it will be "User Usecase - User Repository - SQL"
-func (err *Error) Type() string {
+func (err *Error) Type(onlyFirst ...int) string {
 	reversed := make([]string, len(err.errorTypes))
 	copy(reversed, err.errorTypes)
 	slices.Reverse(reversed)
+
+	if len(onlyFirst) > 0 && onlyFirst[0] > 0 {
+		reversed = limitSlice(reversed, onlyFirst[0])
+	}
+
 	return strings.Join(reversed, " - ")
 }
 
@@ -366,4 +376,42 @@ func Type(err error) string {
 	}
 
 	return custom.Type()
+}
+
+func limitSlice[T any](source []T, limit int) []T {
+	if limit == 0 || source == nil || len(source) == 0 {
+		return []T{}
+	}
+
+	if limit > len(source) {
+		return source
+	}
+
+	return subSlice(source, 0, limit)
+}
+
+func subSlice[T any](source []T, start, end int) []T {
+	sub := make([]T, 0)
+	if start < 0 || end < 0 {
+		return sub
+	}
+
+	if start >= end {
+		return sub
+	}
+
+	length := len(source)
+	if start < length {
+		if end <= length {
+			sub = source[start:end]
+		} else {
+			zeroArray := make([]T, end-length)
+			sub = append(source[start:length], zeroArray[:]...)
+		}
+	} else {
+		zeroArray := make([]T, end-start)
+		sub = zeroArray[:]
+	}
+
+	return sub
 }
